@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <!-- Adaptación para móviles: ancho de dispositivo y escala inicial -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>App Presión y Peso</title>
+
+  <!-- Tipografía (Google Fonts) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link 
+    href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap" 
+    rel="stylesheet"
+  />
+
+  <style>
+    /* Variables y paleta de colores */
+    :root {
+      --color-primary: #ff5722; /* Naranja fuerte */
+      --color-secondary: #03a9f4; /* Azul claro */
+      --color-white: #ffffff;
+      --color-dark: #333333;
+      --bg-gradient: linear-gradient(135deg, #ff9966 0%, #ff5e62 100%);
+      --radius: 12px;
+      --shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Quicksand', sans-serif;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--color-dark);
+    }
+
+    header {
+      background-color: var(--color-primary);
+      color: var(--color-white);
+      text-align: center;
+      padding: 1rem;
+      font-size: 1.8rem;
+      font-weight: 600;
+      box-shadow: var(--shadow);
+    }
+
+    /* Contenedor principal adaptado a formato 9:16 */
+    main {
+      width: 100vw;
+      max-width: 500px; /* Ajusta según tus necesidades */
+      margin: 1rem auto;
+      aspect-ratio: 9 / 16; /* Mantiene la proporción 9:16 */
+      background-color: var(--color-white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Contenedor para el contenido scrollable interno */
+    .content {
+      overflow-y: auto;
+      flex: 1;
+      padding: 1rem;
+    }
+
+    /* Pestañas */
+    .tabs {
+      display: flex;
+      justify-content: space-around;
+      background: var(--color-secondary);
+    }
+    .tab-btn {
+      flex: 1;
+      text-align: center;
+      padding: 0.8rem 0;
+      cursor: pointer;
+      color: var(--color-white);
+      font-weight: 600;
+      transition: background 0.3s;
+    }
+    .tab-btn:hover {
+      background: rgba(255,255,255,0.2);
+    }
+    .tab-btn.active {
+      background: rgba(0,0,0,0.2);
+    }
+
+    /* Contenido de pestañas */
+    .tab-content {
+      display: none;
+      padding: 1rem 0;
+    }
+    .tab-content.active {
+      display: block;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    /* Tarjetas (formularios e historial) */
+    .card {
+      background: #fafafa;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.4rem;
+      font-weight: 600;
+    }
+    input, select {
+      width: 100%;
+      padding: 0.5rem;
+      margin-bottom: 1rem;
+      border-radius: var(--radius);
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 0.7rem 1.2rem;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--color-white);
+      margin-right: 0.5rem;
+      margin-bottom: 0.5rem;
+      background-color: var(--color-secondary);
+      transition: transform 0.2s;
+    }
+    .btn:hover {
+      transform: scale(1.03);
+      background-color: #0288d1;
+    }
+
+    .message {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius);
+      font-size: 0.9rem;
+    }
+    .error {
+      background-color: #ffd4d4;
+      color: #a60000;
+    }
+    .success {
+      background-color: #d4ffd4;
+      color: #007500;
+    }
+
+    /* Historial con scroll interno */
+    .record-list {
+      max-height: 150px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      padding: 0.5rem;
+      border-radius: var(--radius);
+      background: #f5f5f5;
+    }
+    .record-item {
+      background: #fff;
+      border: 1px solid #eee;
+      border-radius: var(--radius);
+      padding: 0.8rem;
+      margin-bottom: 0.5rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      font-size: 0.95rem;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 0.5rem;
+      color: var(--color-white);
+      font-size: 0.9rem;
+      opacity: 0.8;
+      padding: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <header>App Presión y Peso</header>
+
+  <main>
+    <!-- Contenedor interno para permitir scroll en caso de exceso de contenido -->
+    <div class="content">
+      <div class="tabs">
+        <div class="tab-btn active" data-tab="tab1">Presión</div>
+        <div class="tab-btn" data-tab="tab2">Peso</div>
+      </div>
+
+      <!-- Pestaña de Presión -->
+      <div id="tab1" class="tab-content active">
+        <h2>Registros de Presión</h2>
+        <div class="card">
+          <label for="bpName">Nombre:</label>
+          <input type="text" id="bpName" placeholder="Ej. Juan Pérez" />
+
+          <label for="bpDate">Fecha:</label>
+          <input type="date" id="bpDate" />
+
+          <label for="bpTime">Hora:</label>
+          <input type="time" id="bpTime" />
+
+          <label for="bpSystolic">Presión Alta (Sistólica):</label>
+          <input type="number" id="bpSystolic" placeholder="Ej. 120" />
+
+          <label for="bpDiastolic">Presión Baja (Diastólica):</label>
+          <input type="number" id="bpDiastolic" placeholder="Ej. 80" />
+
+          <button class="btn" id="saveBPBtn">Guardar Presión</button>
+          <button class="btn" id="removeBPBtn">Quitar Última</button>
+          <span id="bpMessage" class="message" style="display: none;"></span>
+        </div>
+
+        <div class="card">
+          <h3>Historial de Presión</h3>
+          <div id="bpRecords" class="record-list"></div>
+        </div>
+      </div>
+
+      <!-- Pestaña de Peso -->
+      <div id="tab2" class="tab-content">
+        <h2>Registros de Peso</h2>
+        <div class="card">
+          <label for="weightName">Nombre:</label>
+          <input type="text" id="weightName" placeholder="Ej. Juan Pérez" />
+
+          <label for="weightDate">Fecha:</label>
+          <input type="date" id="weightDate" />
+
+          <label for="weightValue">Peso:</label>
+          <input type="number" id="weightValue" placeholder="Ej. 70" />
+
+          <label for="weightUnit">Unidad:</label>
+          <select id="weightUnit">
+            <option value="kg">Kg</option>
+            <option value="lb">Lb</option>
+          </select>
+
+          <button class="btn" id="saveWeightBtn">Guardar Peso</button>
+          <button class="btn" id="removeWeightBtn">Quitar Última</button>
+          <span id="weightMessage" class="message" style="display: none;"></span>
+        </div>
+
+        <div class="card">
+          <h3>Historial de Peso</h3>
+          <div id="weightRecords" class="record-list"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>© 2025 - App Innovadora de Presión y Peso</footer>
+
+  <script>
+    // Navegación entre pestañas
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        tabButtons.forEach(b => b.classList.remove('active'));
+        tabContents.forEach(tc => tc.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(btn.getAttribute('data-tab')).classList.add('active');
+      });
+    });
+
+    // Función para formatear la fecha en español
+    function formatDateSpanish(isoDateString) {
+      const dateObj = new Date(isoDateString);
+      const monthNames = [
+        "enero", "febrero", "marzo", "abril", "mayo", "junio",
+        "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
+      ];
+      const day = dateObj.getDate();
+      const month = dateObj.getMonth();
+      const year = dateObj.getFullYear();
+      return `${day} de ${monthNames[month]} de ${year}`;
+    }
+
+    // Función para mostrar mensajes temporales
+    function showMessage(element, text, type) {
+      element.textContent = text;
+      element.style.display = "inline-block";
+      element.className = `message ${type}`;
+      setTimeout(() => {
+        element.style.display = "none";
+      }, 3000);
+    }
+
+    /* =========================
+         REGISTRO DE PRESIÓN
+       ========================= */
+    const bpName = document.getElementById("bpName");
+    const bpDate = document.getElementById("bpDate");
+    const bpTime = document.getElementById("bpTime");
+    const bpSystolic = document.getElementById("bpSystolic");
+    const bpDiastolic = document.getElementById("bpDiastolic");
+    const saveBPBtn = document.getElementById("saveBPBtn");
+    const removeBPBtn = document.getElementById("removeBPBtn");
+    const bpMessage = document.getElementById("bpMessage");
+    const bpRecordsContainer = document.getElementById("bpRecords");
+
+    let bpRecords = JSON.parse(localStorage.getItem("bpRecords")) || [];
+
+    function displayBPRecords() {
+      const sorted = [...bpRecords].sort((a, b) => new Date(a.date + " " + a.time) - new Date(b.date + " " + b.time));
+      sorted.reverse();
+      bpRecordsContainer.innerHTML = "";
+      sorted.forEach(r => {
+        const item = document.createElement("div");
+        item.classList.add("record-item");
+        item.innerHTML = `
+          <strong>Nombre:</strong> ${r.name}<br>
+          <strong>Fecha:</strong> ${formatDateSpanish(r.date)}<br>
+          <strong>Hora:</strong> ${r.time}<br>
+          <strong>Sistólica:</strong> ${r.systolic}<br>
+          <strong>Diastólica:</strong> ${r.diastolic}
+        `;
+        bpRecordsContainer.appendChild(item);
+      });
+    }
+
+    saveBPBtn.addEventListener("click", () => {
+      const nameVal = bpName.value;
+      const dateVal = bpDate.value;
+      const timeVal = bpTime.value;
+      const systolicVal = bpSystolic.value;
+      const diastolicVal = bpDiastolic.value;
+      if (!nameVal || !dateVal || !timeVal || !systolicVal || !diastolicVal) {
+        showMessage(bpMessage, "Completa todos los campos.", "error");
+        return;
+      }
+      bpRecords.push({
+        name: nameVal,
+        date: dateVal,
+        time: timeVal,
+        systolic: Number(systolicVal),
+        diastolic: Number(diastolicVal)
+      });
+      localStorage.setItem("bpRecords", JSON.stringify(bpRecords));
+      showMessage(bpMessage, "Registro de presión guardado.", "success");
+      bpName.value = "";
+      bpDate.value = "";
+      bpTime.value = "";
+      bpSystolic.value = "";
+      bpDiastolic.value = "";
+      displayBPRecords();
+    });
+
+    removeBPBtn.addEventListener("click", () => {
+      if (bpRecords.length === 0) {
+        showMessage(bpMessage, "No hay registros para eliminar.", "error");
+        return;
+      }
+      bpRecords.pop();
+      localStorage.setItem("bpRecords", JSON.stringify(bpRecords));
+      showMessage(bpMessage, "Última medición eliminada.", "success");
+      displayBPRecords();
+    });
+
+    displayBPRecords();
+
+    /* =========================
+         REGISTRO DE PESO
+       ========================= */
+    const weightName = document.getElementById("weightName");
+    const weightDate = document.getElementById("weightDate");
+    const weightValue = document.getElementById("weightValue");
+    const weightUnit = document.getElementById("weightUnit");
+    const saveWeightBtn = document.getElementById("saveWeightBtn");
+    const removeWeightBtn = document.getElementById("removeWeightBtn");
+    const weightMessage = document.getElementById("weightMessage");
+    const weightRecordsContainer = document.getElementById("weightRecords");
+
+    let weightRecords = JSON.parse(localStorage.getItem("weightRecords")) || [];
+
+    function displayWeightRecords() {
+      const sorted = [...weightRecords].sort((a, b) => new Date(a.date) - new Date(b.date));
+      sorted.reverse();
+      weightRecordsContainer.innerHTML = "";
+      sorted.forEach(r => {
+        const item = document.createElement("div");
+        item.classList.add("record-item");
+        item.innerHTML = `
+          <strong>Nombre:</strong> ${r.name}<br>
+          <strong>Fecha:</strong> ${formatDateSpanish(r.date)}<br>
+          <strong>Peso:</strong> ${r.value} ${r.unit}
+        `;
+        weightRecordsContainer.appendChild(item);
+      });
+    }
+
+    saveWeightBtn.addEventListener("click", () => {
+      const nameVal = weightName.value;
+      const dateVal = weightDate.value;
+      const weightVal = weightValue.value;
+      const unitVal = weightUnit.value;
+      if (!nameVal || !dateVal || !weightVal) {
+        showMessage(weightMessage, "Completa los campos de nombre, fecha y peso.", "error");
+        return;
+      }
+      weightRecords.push({
+        name: nameVal,
+        date: dateVal,
+        value: Number(weightVal),
+        unit: unitVal
+      });
+      localStorage.setItem("weightRecords", JSON.stringify(weightRecords));
+      showMessage(weightMessage, "Registro de peso guardado.", "success");
+      weightName.value = "";
+      weightDate.value = "";
+      weightValue.value = "";
+      displayWeightRecords();
+    });
+
+    removeWeightBtn.addEventListener("click", () => {
+      if (weightRecords.length === 0) {
+        showMessage(weightMessage, "No hay registros para eliminar.", "error");
+        return;
+      }
+      weightRecords.pop();
+      localStorage.setItem("weightRecords", JSON.stringify(weightRecords));
+      showMessage(weightMessage, "Último registro eliminado.", "success");
+      displayWeightRecords();
+    });
+
+    displayWeightRecords();
+  </script>
+</body>
+</html>
